@@ -34,6 +34,21 @@
     };
   };
 
+  const maxDay = (() => {
+    let maxDay = 0;
+
+    for (const characterName in characters) {
+      for (const day in characters[characterName].weighingsByDay) {
+        const parsedDay = parseInt(day);
+        if (parsedDay > maxDay) {
+          maxDay = parsedDay;
+        }
+      }
+    }
+
+    return maxDay;
+  })();
+
   const isTouchDevice =
     "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
@@ -92,7 +107,7 @@
           type: "linear",
           bounds: "ticks",
           ticks: {
-            max: 30,
+            max: maxDay + 1,
             min: 0,
             stepSize: 5,
           },
