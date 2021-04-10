@@ -21,3 +21,18 @@ export function BMIToCategory(bmi) {
 export function toLbs(weight) {
   return Math.round(weight / 0.453);
 }
+
+const POUNDS_IN_A_STONE = 14;
+
+export function toStonesLabel(weightInLbs) {
+  if (weightInLbs < POUNDS_IN_A_STONE) {
+    return `${weightInLbs}lbs`;
+  }
+  const stones = Math.floor(weightInLbs / POUNDS_IN_A_STONE);
+  const lbs = weightInLbs % POUNDS_IN_A_STONE;
+  let label = `${stones}st`;
+  if (lbs) {
+    label += ` ${lbs}lbs`;
+  }
+  return label;
+}

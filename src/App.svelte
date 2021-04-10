@@ -2,9 +2,9 @@
   import Base from "./Base.svelte";
   import { characters } from "./data";
 
-  import { BMI, BMIToCategory, toLbs } from "./weight";
+  import { BMI, BMIToCategory, toLbs, toStonesLabel } from "./weight";
 
-  const possibleValuesToPlot = ["kg", "lbs", "BMI"];
+  const possibleValuesToPlot = ["kg", "lbs", "BMI", "st"];
   $: valueToPlot = possibleValuesToPlot[0];
 
   const characterNames = Object.entries(characters).map(([name]) => name);
@@ -89,6 +89,11 @@
         BMI(height, weight)
       ),
     },
+    st: {
+      datasets: toDataset(dataFromSelectedCharacters, ({ weight }) =>
+        toLbs(weight)
+      ),
+    },
   };
 
   $: dataLine = allDataLines[valueToPlot];
@@ -122,9 +127,27 @@
               kg: 100,
               lbs: toLbs(100),
               BMI: 50,
+              st: toLbs(100),
             }[valueToPlot],
             min: 0,
-            stepSize: 5,
+            stepSize: {
+              kg: 10,
+              lbs: 20,
+              BMI: 5,
+              st: 14,
+            }[valueToPlot],
+            callback: (label) => {
+              switch (valueToPlot) {
+                case "kg":
+                  return `${label}kg`;
+                case "lbs":
+                  return `${label}lbs`;
+                case "st":
+                  return toStonesLabel(label);
+                default:
+                  return label;
+              }
+            },
           },
         },
       ],
@@ -196,6 +219,24 @@
             lastSelected.day - previousWeighingsFromLastSelected[0]
           } day(s).`;
         }
+      }
+      return text;
+    }
+    if (valueToPlot === "st") {
+      let text = `On day ${lastSelected.day}, ${
+        lastSelected.character.name
+      } weighs ${toStonesLabel(toLbs(lastSelected.weighing.weight))}.`;
+      if (!!previousWeighingsFromLastSelected) {
+        const weightDifference =
+          Math.round(
+            toLbs(
+              lastSelected.weighing.weight -
+                previousWeighingsFromLastSelected[1].weight
+            ) * 10
+          ) / 10;
+        text += ` She gained ${toStonesLabel(weightDifference)} in the last ${
+          lastSelected.day - previousWeighingsFromLastSelected[0]
+        } day(s).`;
       }
       return text;
     }
