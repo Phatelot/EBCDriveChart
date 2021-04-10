@@ -158,7 +158,7 @@
 
   const toText = (lastSelected, valueToPlot) => {
     if (lastSelected === null) {
-      return "";
+      return "Select a point on the chart to display more information";
     }
 
     let previousWeighingsFromLastSelected = Object.entries(
