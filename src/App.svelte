@@ -60,8 +60,8 @@
       borderColor: data.color,
       pointBackgroundColor: data.color,
       pointHoverBackgroundColor: data.color,
-      pointBorderWidth: isTouchDevice ? 12 : 4,
-      pointHoverBorderWidth: isTouchDevice ? 6 : 2,
+      pointBorderWidth: isTouchDevice ? 8 : 4,
+      pointHoverBorderWidth: isTouchDevice ? 4 : 2,
       pointStyle: "rect",
       borderColor: data.color,
       fill: false,
@@ -250,12 +250,9 @@
   };
 
   let clickPointHandler = (event) => {
-    if (!Array.isArray(event)) {
-      return;
-    } else if (event.length == 0) {
+    if (!event) {
       return;
     }
-    [event] = event;
     lastSelected = getWeighingInfo(event._datasetIndex, event._index);
   };
 </script>

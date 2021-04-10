@@ -45,8 +45,16 @@
     if (chart == null) {
       return;
     }
-    const activePoint = chart.getElementAtEvent(event);
-    clickPointHandler(activePoint);
+
+    const nearestPoints = chart.getElementsAtEventForMode(
+      event,
+      "nearest",
+      { intersect: false },
+      true
+    );
+    if (nearestPoints.length) {
+      clickPointHandler(nearestPoints[0]);
+    }
   };
 </script>
 
