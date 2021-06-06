@@ -304,7 +304,7 @@
   </div>
 
   <div class="cm-myus-head">
-    <img src="./myu.png" alt="myu's head" />
+    <img src="./myu.png" alt="myu's head" width="120" height="96" />
   </div>
   <footer>
     <p>All characters belong to Pixiveo.</p>
