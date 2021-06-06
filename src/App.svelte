@@ -170,6 +170,15 @@
       .filter(([_, weighing]) => !!weighing.weight)
       .sort(([day1], [day2]) => parseInt(day2) - parseInt(day1))[0];
 
+    let firstWeighingsFromLastSelected = Object.entries(
+      lastSelected.character.weighingsByDay
+    )
+      .filter(([day]) => parseInt(day) < lastSelected.day)
+      .filter(([_, weighing]) => !!weighing.weight)
+      .sort(([day1], [day2]) => parseInt(day1) - parseInt(day2))[0];
+
+    const atLeastSecondWeighing = !!firstWeighingsFromLastSelected && (firstWeighingsFromLastSelected[0] !== lastSelected.day) && (firstWeighingsFromLastSelected[0] !== previousWeighingsFromLastSelected[0]);
+
     if (valueToPlot === "kg") {
       let text = `On day ${lastSelected.day}, ${lastSelected.character.name} weighs ${lastSelected.weighing.weight} kg.`;
       if (!!previousWeighingsFromLastSelected) {
@@ -182,7 +191,16 @@
         text += ` She gained ${weightDifference} kg in the last `;
         const dayDifference =
           lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
+        text += dayDifference > 1 ? `${dayDifference} days` : `day`;
+        if (atLeastSecondWeighing) {
+          const totalWeightDifference = Math.round(
+            (lastSelected.weighing.weight -
+            firstWeighingsFromLastSelected[1].weight) * 10
+          ) /10;
+          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+          text += ` (total: ${totalWeightDifference} kg in ${totalDayDifference} days)`
+        }
+        text += ".";
       }
       return text;
     }
@@ -201,7 +219,16 @@
         text += ` She gained ${weightDifference} lbs in the last `;
         const dayDifference =
           lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
+        text += dayDifference > 1 ? `${dayDifference} days` : `day`;
+        if (atLeastSecondWeighing) {
+          const totalWeightDifference = Math.round(
+            (lastSelected.weighing.weight -
+            firstWeighingsFromLastSelected[1].weight) * 10
+          ) /10;
+          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+          text += ` (total: ${toLbs(totalWeightDifference)} lbs in ${totalDayDifference} days)`
+        }
+        text += ".";
       }
       return text;
     }
@@ -259,7 +286,16 @@
         text += ` She gained ${toStonesLabel(weightDifference)} in the last `;
         const dayDifference =
           lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
+        text += dayDifference > 1 ? `${dayDifference} days` : `day`;
+        if (atLeastSecondWeighing) {
+          const totalWeightDifference = Math.round(
+            toLbs(lastSelected.weighing.weight -
+            firstWeighingsFromLastSelected[1].weight) * 10
+          ) /10;
+          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+          text += ` (total: ${toStonesLabel(totalWeightDifference)} in ${totalDayDifference} days)`
+        }
+        text += ".";
       }
       return text;
     }
