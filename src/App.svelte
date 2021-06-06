@@ -115,6 +115,7 @@
             max: maxDay + 1,
             min: 0,
             stepSize: 5,
+            callback: (label) => `day ${label}`,
           },
         },
       ],
