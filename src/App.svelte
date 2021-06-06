@@ -178,9 +178,9 @@
               previousWeighingsFromLastSelected[1].weight) *
               10
           ) / 10;
-        text += ` She gained ${weightDifference} kg in the last ${
-          lastSelected.day - previousWeighingsFromLastSelected[0]
-        } day(s).`;
+        text += ` She gained ${weightDifference} kg in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
@@ -196,9 +196,9 @@
                 previousWeighingsFromLastSelected[1].weight
             ) * 10
           ) / 10;
-        text += ` She gained ${weightDifference} lbs in the last ${
-          lastSelected.day - previousWeighingsFromLastSelected[0]
-        } day(s).`;
+        text += ` She gained ${weightDifference} lbs in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
@@ -216,9 +216,9 @@
           previousWeighingsFromLastSelected[1].weight
         );
         if (previousBMI !== lastBMI) {
-          text += ` She gained ${lastBMI - previousBMI} BMI point in the last ${
-            lastSelected.day - previousWeighingsFromLastSelected[0]
-          } day(s).`;
+          text += ` She gained ${lastBMI - previousBMI} BMI point in the last `;
+          const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+          text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
         }
       }
       return text;
@@ -235,9 +235,9 @@
                 previousWeighingsFromLastSelected[1].weight
             ) * 10
           ) / 10;
-        text += ` She gained ${toStonesLabel(weightDifference)} in the last ${
-          lastSelected.day - previousWeighingsFromLastSelected[0]
-        } day(s).`;
+        text += ` She gained ${toStonesLabel(weightDifference)} in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
