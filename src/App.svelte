@@ -62,8 +62,9 @@
       pointHoverBackgroundColor: data.color,
       pointBorderWidth: isTouchDevice ? 8 : 4,
       pointHoverBorderWidth: isTouchDevice ? 4 : 2,
-      pointStyle: "rect",
+      pointStyle: "crossRot",
       borderColor: data.color,
+      tension: 0.2,
       fill: false,
       data: Object.entries(data.weighingsByDay).map(([day, weighing]) => ({
         x: day,
