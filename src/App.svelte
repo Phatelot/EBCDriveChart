@@ -179,8 +179,9 @@
               10
           ) / 10;
         text += ` She gained ${weightDifference} kg in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
+        const dayDifference =
+          lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
@@ -197,8 +198,9 @@
             ) * 10
           ) / 10;
         text += ` She gained ${weightDifference} lbs in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
+        const dayDifference =
+          lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
@@ -207,19 +209,37 @@
         lastSelected.character.height,
         lastSelected.weighing.weight
       );
-      let text = `On day ${lastSelected.day}, ${
-        lastSelected.character.name
-      } has a BMI of ${lastBMI}, so she is ${BMIToCategory(lastBMI)}.`;
-      if (!!previousWeighingsFromLastSelected) {
-        const previousBMI = BMI(
-          lastSelected.character.height,
-          previousWeighingsFromLastSelected[1].weight
-        );
-        if (previousBMI !== lastBMI) {
-          text += ` She gained ${lastBMI - previousBMI} BMI point in the last `;
-          const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
-          text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
-        }
+      const previousBMI = !!previousWeighingsFromLastSelected
+        ? BMI(
+            lastSelected.character.height,
+            previousWeighingsFromLastSelected[1].weight
+          )
+        : null;
+
+      let text = `On day ${lastSelected.day}, ${lastSelected.character.name} `;
+
+      if (previousBMI === lastBMI) {
+        text += "still ";
+      }
+
+      text += `has a BMI of ${lastBMI}, `;
+      const lastBMICategory = BMIToCategory(lastBMI);
+      if (!previousBMI) {
+        text += `so she is ${lastBMICategory}.`;
+      } else if (BMIToCategory(previousBMI) !== lastBMICategory) {
+        text += `and is now ${lastBMICategory}.`;
+      } else {
+        text += `and remains ${lastBMICategory}.`;
+      }
+
+      if (previousBMI && previousBMI !== lastBMI) {
+        const BMIDifference = lastBMI - previousBMI;
+        text += ` She gained ${BMIDifference} BMI point${
+          BMIDifference === 1 ? "" : "s"
+        } in the last `;
+        const dayDifference =
+          lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
@@ -236,8 +256,9 @@
             ) * 10
           ) / 10;
         text += ` She gained ${toStonesLabel(weightDifference)} in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += (dayDifference > 1) ? `${dayDifference} days.` : `day.`;
+        const dayDifference =
+          lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
       }
       return text;
     }
