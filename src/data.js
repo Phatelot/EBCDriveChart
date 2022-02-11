@@ -23,6 +23,11 @@ export const characters = {
         url: "https://twitter.com/pix_iveo/status/1402689744094515202/photo/1",
         weight: 52.6,
       },
+      52: {
+        page: 133,
+        url: "https://twitter.com/pix_iveo/status/1492278357744041992/photo/1",
+        weight: 62.3,
+      },
     },
   },
   Zina: {
