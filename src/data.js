@@ -44,6 +44,11 @@ export const characters = {
         url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-92-878240402",
         weight: 88,
       },
+      60: {
+        page: 136,
+        url: "https://pbs.twimg.com/media/FMejCqFXoAIdujU?format=png&name=900x900",
+        weight: 92.6,
+      },
     },
   },
   Nadette: {
