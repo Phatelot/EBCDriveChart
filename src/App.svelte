@@ -115,8 +115,8 @@
           ticks: {
             max: maxDay + 1,
             min: 0,
-            stepSize: 5,
-            callback: (label) => `day ${label}`,
+            stepSize: 7,
+            callback: (label) => label % 7 === 0 ? `week ${label/7}` : "",
           },
         },
       ],
@@ -134,9 +134,9 @@
             min: 0,
             stepSize: {
               kg: 10,
-              lbs: 20,
+              lbs: 25,
               BMI: 5,
-              st: 14,
+              st: 21,
             }[valueToPlot],
             callback: (label) => {
               switch (valueToPlot) {

@@ -15,6 +15,12 @@ export function BMIToCategory(bmi) {
   if (bmi < 35) {
     return "obese";
   }
+  if (bmi < 40) {
+    return "severely obese";
+  }
+  if (bmi < 50) {
+    return "morbidly obese";
+  }
   return "extremely obese";
 }
 
