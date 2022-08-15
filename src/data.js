@@ -1,116 +1,71 @@
+import { fromLbs } from './weight'
+
 export const characters = {
-  Myu: {
-    height: 1.58,
-    color: "#8dd5fd",
+  Beth: {
+    height: 1.6,
+    color: "#299a40",
     weighingsByDay: {
       0: {
-        page: 28,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-28-843353712",
-        weight: 48.2,
+        url: "https://twitter.com/EBCArtWork/status/1547310838435893248/photo/1",
+        weight: fromLbs(135),
       },
       1: {
-        page: 81,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-81-871310386",
-        weight: 48.6,
+        url: "https://twitter.com/EBCArtWork/status/1550941472911872000/photo/1",
+        weight: fromLbs(222),
       },
-      8: {
-        page: 83,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-83-873231217",
-        weight: 49.9,
-      },
-      23: {
-        page: 99,
-        url: "https://twitter.com/pix_iveo/status/1402689744094515202/photo/1",
-        weight: 52.6,
-      },
-      52: {
-        page: 133,
-        url: "https://twitter.com/pix_iveo/status/1492278357744041992/photo/1",
-        weight: 62.3,
-      },
-      60:{
-        page: 139,
-        url: "https://twitter.com/pix_iveo/status/1499833125559537678/photo/1",
-        weight: 64.5,
+      2: {
+        url: "https://twitter.com/EBCArtWork/status/1554602659935444992/photo/1",
+        weight: fromLbs(457),
       },
     },
   },
-  Zina: {
-    height: 1.7,
-    color: "#e68262",
+  Shyla: {
+    height: 7.31,
+    color: "#ad5fcf",
     weighingsByDay: {
       0: {
-        page: 9,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-9-835285997",
-        weight: 84.8,
+        url: "https://twitter.com/EBCArtWork/status/1547310838435893248/photo/1",
+        weight: fromLbs(800),
       },
-      14: {
-        page: 92,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-92-878240402",
-        weight: 88,
+      1: {
+        url: "https://twitter.com/EBCArtWork/status/1549456337897107457/photo/1",
+        weight: fromLbs(839),
       },
-      60: {
-        page: 136,
-        url: "https://pbs.twimg.com/media/FMejCqFXoAIdujU?format=png&name=900x900",
-        weight: 92.6,
+      2: {
+        url: "https://twitter.com/EBCArtWork/status/1552365214997237760/photo/1",
+        weight: fromLbs(1111),
       },
     },
   },
-  Nadette: {
-    height: 1.65,
-    color: "#c08e7d",
+  Sam: {
+    height: 3.40,
+    color: "#5f61d0",
     weighingsByDay: {
       0: {
-        page: 77,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-77-868580219",
-        weight: undefined,
+        url: "https://twitter.com/EBCArtWork/status/1547310838435893248/photo/1",
+        weight: fromLbs(400),
       },
-      8: {
-        page: 89,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-89-876395412",
-        weight: 62.3,
-      },
-      19: {
-        page: 95,
-        url: "https://twitter.com/pix_iveo/status/1395323406355161091/photo/1",
-        weight: 70.7,
-      },
-      60: {
-        page: 144,
-        url: "https://twitter.com/pix_iveo/status/1506336501231140873/photo/1",
-        weight: 95.3,
+      1: {
+        url: "https://twitter.com/EBCArtWork/status/1548734370160078848/photo/1",
+        weight: fromLbs(427),
       },
     },
   },
-  Ilya: {
-    height: 1.72,
-    color: "#87f0e4",
+  Cassie: {
+    height: 1.75,
+    color: "#b94955",
     weighingsByDay: {
       0: {
-        page: 57,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-57-858496865",
-        weight: 88,
+        url: "https://twitter.com/EBCArtWork/status/1547310838435893248/photo/1",
+        weight: fromLbs(120),
       },
-      18: {
-        page: 0,
-        url: "",
-        weight: 88,
+      1: {
+        url: "https://twitter.com/EBCArtWork/status/1550199103811858432/photo/1",
+        weight: fromLbs(192),
       },
-      95: {
-        page: 184,
-        url: "https://twitter.com/pix_iveo/status/1558129298044772357/photo/1",
-        weight: 136.2,
-      },
-    },
-  },
-  Rena: {
-    height: 1.8,
-    color: "#fccb82",
-    weighingsByDay: {
-      0: {
-        page: 57,
-        url: "https://www.deviantart.com/pixiveo/art/Log-Myu-Page-57-858496865",
-        weight: 92,
+      2: {
+        url: "https://twitter.com/EBCArtWork/status/1556795405853069312/photo/1",
+        weight: fromLbs(485),
       },
     },
   },

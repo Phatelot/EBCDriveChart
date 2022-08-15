@@ -1,8 +1,8 @@
-# Chart Myu
+# EBC Drive chart
 
-Chart Myu is a simple interactive UI around a chart displaying the weights of characters from [Pixiveo's comic Log Myu](https://www.deviantart.com/pixiveo/gallery/72533855/log-myu).
+EBC Drive chart is a simple interactive UI around a chart displaying the weights of the monster girls from [ExtraBaggageClaim's drive](https://twitter.com/EBCArtWork/status/1547310838435893248/photo/1).
 It's built using [Svelte](https://svelte.dev/) and [Chart.js](https://www.chartjs.org/).
-It's deployed using Github actions and Github pages [here](https://phatelot.github.io/ChartMyu/).
+It's deployed using Github actions and Github pages [here](https://phatelot.github.io/EBCDriveChart/).
 
 ### Commands
 

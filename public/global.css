@@ -22,7 +22,7 @@ body {
 }
 
 main {
-  background: linear-gradient(0.875turn, #c6ebeb, #95d1eb);
+  background: linear-gradient(135deg, rgba(178,183,189,1) 0%, rgba(247,212,108,1) 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -87,4 +87,12 @@ footer {
   padding-left: 8px;
   padding-right: 8px;
   flex-wrap: wrap;
+}
+
+footer a {
+  color: #fffb6b;
+}
+
+footer a:visited {
+  color: #fd9438;
 }

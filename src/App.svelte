@@ -4,7 +4,7 @@
 
   import { BMI, BMIToCategory, toLbs, toStonesLabel } from "./weight";
 
-  const possibleValuesToPlot = ["kg", "lbs", "BMI", "st"];
+  const possibleValuesToPlot = ["lbs", "kg", "lbs gained", "BMI"];
   $: valueToPlot = possibleValuesToPlot[0];
 
   const characterNames = Object.entries(characters).map(([name]) => name);
@@ -71,6 +71,7 @@
         y: valueFunc({
           height: data.height,
           weight: weighing.weight,
+          initialWeight: (data.weighingsByDay[0] || {}).weight,
         }),
       })),
     }));
@@ -90,9 +91,9 @@
         BMI(height, weight)
       ),
     },
-    st: {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight }) =>
-        toLbs(weight)
+    'lbs gained': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ weight, initialWeight }) =>
+        toLbs(weight - initialWeight)
       ),
     },
   };
@@ -115,8 +116,8 @@
           ticks: {
             max: maxDay + 1,
             min: 0,
-            stepSize: 7,
-            callback: (label) => label % 7 === 0 ? `week ${label/7}` : "",
+            stepSize: 1,
+            callback: (label) => label == maxDay + 1 ? "" : `step ${label + 1}`,
           },
         },
       ],
@@ -129,14 +130,14 @@
               kg: 100,
               lbs: toLbs(100),
               BMI: 50,
-              st: toLbs(100),
+              'lbs gained': toLbs(100),
             }[valueToPlot],
             min: 0,
             stepSize: {
-              kg: 10,
-              lbs: 25,
+              kg: 50,
+              lbs: 100,
               BMI: 5,
-              st: 21,
+              'lbs gained': 100,
             }[valueToPlot],
             callback: (label) => {
               switch (valueToPlot) {
@@ -144,8 +145,8 @@
                   return `${label}kg`;
                 case "lbs":
                   return `${label}lbs`;
-                case "st":
-                  return toStonesLabel(label);
+                case "lbs gained":
+                  return `${label}lbs`;
                 default:
                   return label;
               }
@@ -180,7 +181,7 @@
     const atLeastSecondWeighing = !!firstWeighingsFromLastSelected && (firstWeighingsFromLastSelected[0] !== lastSelected.day) && (firstWeighingsFromLastSelected[0] !== previousWeighingsFromLastSelected[0]);
 
     if (valueToPlot === "kg") {
-      let text = `On day ${lastSelected.day}, ${lastSelected.character.name} weighs ${lastSelected.weighing.weight} kg.`;
+      let text = `In part ${parseInt(lastSelected.day) + 1}, ${lastSelected.character.name} weighs ${lastSelected.weighing.weight} kg.`;
       if (!!previousWeighingsFromLastSelected) {
         const weightDifference =
           Math.round(
@@ -188,24 +189,21 @@
               previousWeighingsFromLastSelected[1].weight) *
               10
           ) / 10;
-        text += ` She gained ${weightDifference} kg in the last `;
-        const dayDifference =
-          lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days` : `day`;
+        text += ` She gained ${weightDifference} kg since the previous part `;
         if (atLeastSecondWeighing) {
           const totalWeightDifference = Math.round(
             (lastSelected.weighing.weight -
             firstWeighingsFromLastSelected[1].weight) * 10
           ) /10;
           const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${totalWeightDifference} kg in ${totalDayDifference} days)`
+          text += ` (total: ${totalWeightDifference} kg)`
         }
         text += ".";
       }
       return text;
     }
     if (valueToPlot === "lbs") {
-      let text = `On day ${lastSelected.day}, ${
+      let text = `In part ${parseInt(lastSelected.day) + 1}, ${
         lastSelected.character.name
       } weighs ${toLbs(lastSelected.weighing.weight)} lbs.`;
       if (!!previousWeighingsFromLastSelected) {
@@ -216,17 +214,14 @@
                 previousWeighingsFromLastSelected[1].weight
             ) * 10
           ) / 10;
-        text += ` She gained ${weightDifference} lbs in the last `;
-        const dayDifference =
-          lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days` : `day`;
+        text += ` She gained ${weightDifference} lbs since the previous part`;
         if (atLeastSecondWeighing) {
           const totalWeightDifference = Math.round(
             (lastSelected.weighing.weight -
             firstWeighingsFromLastSelected[1].weight) * 10
           ) /10;
           const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${toLbs(totalWeightDifference)} lbs in ${totalDayDifference} days)`
+          text += ` (total: ${toLbs(totalWeightDifference)} lbs)`
         }
         text += ".";
       }
@@ -244,7 +239,7 @@
           )
         : null;
 
-      let text = `On day ${lastSelected.day}, ${lastSelected.character.name} `;
+      let text = `In part ${parseInt(lastSelected.day) + 1}, ${lastSelected.character.name} `;
 
       if (previousBMI === lastBMI) {
         text += "still ";
@@ -264,39 +259,24 @@
         const BMIDifference = lastBMI - previousBMI;
         text += ` She gained ${BMIDifference} BMI point${
           BMIDifference === 1 ? "" : "s"
-        } in the last `;
-        const dayDifference =
-          lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days.` : `day.`;
+        } since the previous part.`
       }
+
+      if (lastSelected.character.name === "Shyla") {
+        text += " Obviously, BMI doesn't make much sense for snakes."
+      }
+
       return text;
     }
-    if (valueToPlot === "st") {
-      let text = `On day ${lastSelected.day}, ${
-        lastSelected.character.name
-      } weighs ${toStonesLabel(toLbs(lastSelected.weighing.weight))}.`;
-      if (!!previousWeighingsFromLastSelected) {
-        const weightDifference =
-          Math.round(
-            toLbs(
-              lastSelected.weighing.weight -
-                previousWeighingsFromLastSelected[1].weight
-            ) * 10
-          ) / 10;
-        text += ` She gained ${toStonesLabel(weightDifference)} in the last `;
-        const dayDifference =
-          lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} days` : `day`;
-        if (atLeastSecondWeighing) {
-          const totalWeightDifference = Math.round(
-            toLbs(lastSelected.weighing.weight -
-            firstWeighingsFromLastSelected[1].weight) * 10
-          ) /10;
-          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${toStonesLabel(totalWeightDifference)} in ${totalDayDifference} days)`
-        }
-        text += ".";
+    if (valueToPlot === "lbs gained") {
+      if (lastSelected.day === '0') {
+        return "In part 1, the girls haven't gained any weight... yet."
       }
+
+      const totalLbsGained = toLbs(lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight)
+      let text = `In part ${parseInt(lastSelected.day) + 1}, ${
+        lastSelected.character.name
+      } has gained a total of ${Math.round(totalLbsGained)} lbs.`
       return text;
     }
   };
@@ -318,7 +298,7 @@
 
 <main>
   <div class="cm-container">
-    <h1>Chart Myu ({valueToPlot})</h1>
+    <h1>EBC Monster girls drive ({valueToPlot})</h1>
     <div class="cm-chart">
       <Base data={dataLine} {options} {clickPointHandler} />
     </div>
@@ -362,24 +342,28 @@
     {/if}
   </div>
 
-  <div class="cm-myus-head">
-    <img src="./myu.png" alt="myu's head" width="120" height="96" />
+  <div class="cm-cassies-head">
+    <img src="./cassie.png" alt="Cassie's head" width="200" height="200" />
   </div>
   <footer>
-    <p>All characters belong to Pixiveo.</p>
+    <p>All characters belong to ExtraBaggageClaim.</p>
 
     <p>
-      <a href="https://www.patreon.com/pixiveo">Support Pixiveo on Patreon</a>
+      <a href="https://ko-fi.com/extrabagageclaim">Ko-fi: make the girls grow!</a>
+    </p>
+    
+    <p>
+      <a href="https://www.patreon.com/extrabaggageclaim">Support EBC on Patreon</a>
     </p>
 
     <p>
-      <a href="https://www.deviantart.com/pixiveo"
-        >Pixiveo's Deviantart gallery</a
+      <a href="https://www.deviantart.com/extrabaggageclaim/gallery"
+        >EBC's Deviantart gallery</a
       >
     </p>
 
     <p>
-      <a href="https://github.com/Phatelot/ChartMyu">Source code of this page</a
+      <a href="https://github.com/Phatelot/EBCDriveChart">Source code of this page</a
       >
     </p>
   </footer>
@@ -397,13 +381,10 @@
     text-align: center;
   }
 
-  img {
-    max-width: 120px;
-  }
-
-  .cm-myus-head {
+  .cm-cassies-head {
     display: flex;
     flex-flow: row-reverse;
+    pointer-events: none;
   }
 
   .cm-container {
@@ -422,6 +403,7 @@
     .cm-container {
       padding-left: 200px;
       padding-right: 200px;
+      margin-bottom: -120px;
     }
   }
 
@@ -429,6 +411,7 @@
     .cm-container {
       padding-left: 350px;
       padding-right: 350px;
+      margin-bottom: -120px;
     }
   }
 

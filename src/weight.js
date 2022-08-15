@@ -28,6 +28,10 @@ export function toLbs(weight) {
   return Math.round(weight / 0.453);
 }
 
+export function fromLbs(weight) {
+  return Math.round(weight * 0.453 * 10) / 10
+}
+
 const POUNDS_IN_A_STONE = 14;
 
 export function toStonesLabel(weightInLbs) {
