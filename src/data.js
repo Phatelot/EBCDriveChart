@@ -52,7 +52,7 @@ export const characters = {
     },
   },
   Cassie: {
-    height: 1.75,
+    height: 1.65,
     color: "#b94955",
     weighingsByDay: {
       0: {
