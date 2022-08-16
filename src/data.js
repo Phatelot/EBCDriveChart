@@ -8,14 +8,17 @@ export const characters = {
       0: {
         url: "https://twitter.com/EBCArtWork/status/1547310838435893248/photo/1",
         weight: fromLbs(135),
+        height: 1.6,
       },
       1: {
         url: "https://twitter.com/EBCArtWork/status/1550941472911872000/photo/1",
         weight: fromLbs(222),
+        height: 1.55,
       },
       2: {
         url: "https://twitter.com/EBCArtWork/status/1554602659935444992/photo/1",
         weight: fromLbs(457),
+        height: 1.47,
       },
     },
   },

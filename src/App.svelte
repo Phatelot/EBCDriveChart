@@ -69,7 +69,7 @@
       data: Object.entries(data.weighingsByDay).map(([day, weighing]) => ({
         x: day,
         y: valueFunc({
-          height: data.height,
+          height: weighing.height || data.height,
           weight: weighing.weight,
           initialWeight: (data.weighingsByDay[0] || {}).weight,
         }),
@@ -229,12 +229,12 @@
     }
     if (valueToPlot === "BMI") {
       const lastBMI = BMI(
-        lastSelected.character.height,
+        lastSelected.weighing.height || lastSelected.character.height,
         lastSelected.weighing.weight
       );
       const previousBMI = !!previousWeighingsFromLastSelected
         ? BMI(
-            lastSelected.character.height,
+            previousWeighingsFromLastSelected[1].height || lastSelected.character.height,
             previousWeighingsFromLastSelected[1].weight
           )
         : null;
