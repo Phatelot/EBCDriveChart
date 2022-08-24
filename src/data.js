@@ -38,6 +38,10 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1552365214997237760/photo/1",
         weight: fromLbs(1111),
       },
+      3: {
+        url: "https://twitter.com/EBCArtWork/status/1562232976968036352/photo/1",
+        weight: fromLbs(1465),
+      },
     },
   },
   Sam: {
