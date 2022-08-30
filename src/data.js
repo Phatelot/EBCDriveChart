@@ -23,6 +23,7 @@ export const characters = {
       3: {
         url: "https://twitter.com/EBCArtWork/status/1564691985801576448/photo/1",
         weight: fromLbs(822),
+        height: 1.27,
       },
     },
   },
