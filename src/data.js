@@ -20,6 +20,10 @@ export const characters = {
         weight: fromLbs(457),
         height: 1.47,
       },
+      3: {
+        url: "https://twitter.com/EBCArtWork/status/1564691985801576448/photo/1",
+        weight: fromLbs(822),
+      },
     },
   },
   Shyla: {
