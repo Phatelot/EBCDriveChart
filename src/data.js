@@ -65,6 +65,10 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1559979364397170688/photo/1",
         weight: fromLbs(770),
       },
+      3: {
+        url: "https://twitter.com/EBCArtWork/status/1572714552244203520/photo/1",
+        weight: fromLbs(1319),
+      },
     },
   },
   Cassie: {
