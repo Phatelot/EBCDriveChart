@@ -25,6 +25,14 @@ export const characters = {
         weight: fromLbs(822),
         height: 1.27,
       },
+      4: {
+        weight: fromLbs(1455),
+        height: 1.29,
+      },
+      5: {
+        weight: fromLbs(1848),
+        height: 1.29,
+      },
     },
   },
   Shyla: {
@@ -46,6 +54,12 @@ export const characters = {
       3: {
         url: "https://twitter.com/EBCArtWork/status/1562232976968036352/photo/1",
         weight: fromLbs(1465),
+      },
+      4: {
+        weight: fromLbs(2189),
+      },
+      5: {
+        weight: fromLbs(2558),
       },
     },
   },
@@ -69,6 +83,12 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1572714552244203520/photo/1",
         weight: fromLbs(1319),
       },
+      4: {
+        weight: fromLbs(1967),
+      },
+      5: {
+        weight: fromLbs(3129),
+      },
     },
   },
   Cassie: {
@@ -90,6 +110,12 @@ export const characters = {
       3: {
         url: "https://twitter.com/EBCArtWork/status/1570148537396264960/photo/1",
         weight: fromLbs(1015),
+      },
+      4: {
+        weight: fromLbs(1785),
+      },
+      5: {
+        weight: fromLbs(2697),
       },
     },
   },

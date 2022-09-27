@@ -117,7 +117,16 @@
             max: maxDay + 1,
             min: 0,
             stepSize: 1,
-            callback: (label) => label == maxDay + 1 ? "" : `step ${label + 1}`,
+            callback: (label) => {
+              if (label == maxDay + 1) {
+                return ""
+              } else if (label == 4) {
+                return "start of last stream"
+              } else if (label == 5) {
+                return "end of last stream"
+              }
+              return `step ${label + 1}`
+            },
           },
         },
       ],
