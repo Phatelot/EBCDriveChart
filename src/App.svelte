@@ -1,27 +1,56 @@
 <script>
-  import Base from "./Base.svelte";
+  import { Line } from "svelte-chartjs";
+  import { getRelativePosition } from "chart.js/helpers";
+
+  import { Chart as ChartJS, Title, LineElement, LinearScale, PointElement, Interaction } from "chart.js";
+  import annotationPlugin from "chartjs-plugin-annotation";
+
   import { characters } from "./data";
 
-  import { BMI, BMIToCategory, toLbs, toStonesLabel } from "./weight";
+  import { BMI, BMIToCategory, toLbs } from "./weight";
 
-  const possibleValuesToPlot = ["lbs", "kg", "lbs gained", "BMI"];
+  ChartJS.register(Title, LineElement, PointElement, LinearScale, annotationPlugin);
+
+  // @ts-ignore
+  Interaction.modes.cmInteractionMode = function (chart, event) {
+    const position = getRelativePosition(event, chart);
+
+    let dist = Infinity;
+    let nearestItem;
+    Interaction.evaluateInteractionItems(chart, "xy", position, (element, datasetIndex, index) => {
+      const candidateDist = Math.sqrt((element.x - position.x) ** 2 + (element.y - position.y) ** 2);
+      if (candidateDist < dist) {
+        dist = candidateDist;
+        nearestItem = { element, datasetIndex, index };
+      }
+    });
+    return [nearestItem];
+  };
+
+  const createBMIThresholdAnnotation = (threshold) => ({
+    type: "line",
+    yMin: threshold,
+    yMax: threshold,
+    drawTime: "beforeDatasetsDraw",
+    borderWidth: 1.2,
+    borderDash: [6, 6],
+    borderDashOffset: 0,
+  });
+
+  const possibleValuesToPlot = ["lbs", "kg", "BMI", "lbs gained"];
   $: valueToPlot = possibleValuesToPlot[0];
 
   const characterNames = Object.entries(characters).map(([name]) => name);
-  const characterColors = Object.fromEntries(
-    characterNames.map((name) => [name, characters[name].color])
-  );
+  const characterColors = Object.fromEntries(characterNames.map((name) => [name, characters[name].color]));
 
   let selectedCharacters = [...characterNames];
 
-  $: dataFromSelectedCharacters = Object.entries(characters).filter(([name]) =>
-    selectedCharacters.includes(name)
-  );
+  $: dataFromSelectedCharacters = Object.entries(characters).filter(([name]) => selectedCharacters.includes(name));
 
   $: selectedWeighings = dataFromSelectedCharacters.map(([name, data]) => ({
     name,
     ...data,
-    weighings: Object.entries(data.weighingsByDay).map(([day, weighing]) => ({
+    weighings: Object.entries(data.weighingsByStep).map(([day, weighing]) => ({
       day,
       weighing,
     })),
@@ -38,7 +67,7 @@
     let maxDay = 0;
 
     for (const characterName in characters) {
-      for (const day in characters[characterName].weighingsByDay) {
+      for (const day in characters[characterName].weighingsByStep) {
         const parsedDay = parseInt(day);
         if (parsedDay > maxDay) {
           maxDay = parsedDay;
@@ -52,6 +81,7 @@
   const isTouchDevice =
     "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
+    // @ts-ignore
     navigator.msMaxTouchPoints > 0;
 
   function toDataset(data, valueFunc) {
@@ -63,17 +93,19 @@
       pointBorderWidth: isTouchDevice ? 8 : 4,
       pointHoverBorderWidth: isTouchDevice ? 4 : 2,
       pointStyle: "crossRot",
-      borderColor: data.color,
       tension: 0.2,
       fill: false,
-      data: Object.entries(data.weighingsByDay).map(([day, weighing]) => ({
-        x: day,
-        y: valueFunc({
+      data: Object.entries(data.weighingsByStep).map(([day, weighing]) => {
+        const y = valueFunc({
           height: weighing.height || data.height,
           weight: weighing.weight,
-          initialWeight: (data.weighingsByDay[0] || {}).weight,
-        }),
-      })),
+          initialWeight: (data.weighingsByStep[0] || {}).weight,
+        });
+        if (!y && y !== 0) {
+          return null
+        }
+        return { x: day, y: y }
+      }).filter(a => a !== null),
     }));
   }
 
@@ -82,25 +114,28 @@
       datasets: toDataset(dataFromSelectedCharacters, ({ weight }) => weight),
     },
     lbs: {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight }) =>
-        toLbs(weight)
-      ),
+      datasets: toDataset(dataFromSelectedCharacters, ({ weight }) => toLbs(weight)),
     },
     BMI: {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight, height }) =>
-        BMI(height, weight)
-      ),
+      datasets: toDataset(dataFromSelectedCharacters, ({ weight, height }) => BMI(height, weight)),
     },
     'lbs gained': {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight, initialWeight }) =>
-        toLbs(weight - initialWeight)
-      ),
+      datasets: toDataset(dataFromSelectedCharacters, ({ weight, initialWeight }) => {
+        return toLbs(weight - initialWeight);
+      }),
     },
   };
 
   $: dataLine = allDataLines[valueToPlot];
 
+  let onClick = (event, _, chart) => {
+    const elements = chart.getElementsAtEventForMode(event, "cmInteractionMode", { intersect: true }, true);
+    lastSelected = getWeighingInfo(elements[0].datasetIndex, elements[0].index);
+  };
+
   $: options = {
+    responsive: true,
+    aspectRatio: 16 / 9,
     legend: {
       display: false,
     },
@@ -109,61 +144,61 @@
     },
     animation: false,
     scales: {
-      xAxes: [
-        {
-          type: "linear",
-          bounds: "ticks",
-          ticks: {
-            max: maxDay + 1,
-            min: 0,
-            stepSize: 1,
-            callback: (label) => {
-              if (label == maxDay + 1) {
-                return ""
-              } else if (label == 4) {
-                return "start of last stream"
-              } else if (label == 5) {
-                return "end of last stream"
-              }
-              return `step ${label + 1}`
-            },
+      x: {
+        type: "linear",
+        bounds: "ticks",
+        ticks: {
+          max: maxDay + 1,
+          min: 0,
+          stepSize: 6,
+          callback: (label) => (label % 6 === 0 ? `step ${label}` : ""),
+        },
+      },
+      y: {
+        type: "linear",
+        bounds: "ticks",
+        suggestedMax: {
+          kg: 150,
+          lbs: toLbs(150),
+          BMI: 50,
+          'lbs gained': 105,
+        }[valueToPlot],
+        suggestedMin: 0,
+        ticks: {
+          min: 0,
+          stepSize: {
+            kg: 10,
+            lbs: 25,
+            BMI: 5,
+            'lbs gained': 20,
+          }[valueToPlot],
+          callback: (label) => {
+            switch (valueToPlot) {
+              case "kg":
+                return label % 20 === 0 ? `${label}kg` : "";
+              case "lbs":
+              case "lbs gained":
+                return label % 50 === 0 ? `${label}lbs` : "";
+              default:
+                return label;
+            }
           },
         },
-      ],
-      yAxes: [
-        {
-          type: "linear",
-          bounds: "ticks",
-          ticks: {
-            suggestedMax: {
-              kg: 100,
-              lbs: toLbs(100),
-              BMI: 50,
-              'lbs gained': toLbs(100),
-            }[valueToPlot],
-            min: 0,
-            stepSize: {
-              kg: 50,
-              lbs: 100,
-              BMI: 5,
-              'lbs gained': 100,
-            }[valueToPlot],
-            callback: (label) => {
-              switch (valueToPlot) {
-                case "kg":
-                  return `${label}kg`;
-                case "lbs":
-                  return `${label}lbs`;
-                case "lbs gained":
-                  return `${label}lbs`;
-                default:
-                  return label;
-              }
-            },
-          },
-        },
-      ],
+      },
     },
+    plugins: {
+      annotation: {
+        BMI: {
+          annotations: {
+            healthy: createBMIThresholdAnnotation(18.5),
+            overweight: createBMIThresholdAnnotation(25),
+            obese: createBMIThresholdAnnotation(30),
+            obeseII: createBMIThresholdAnnotation(40),
+          },
+        },
+      }[valueToPlot],
+    },
+    onClick: onClick,
   };
 
   $: lastSelected = null;
@@ -173,64 +208,60 @@
       return "Select a point on the chart to display more information";
     }
 
-    let previousWeighingsFromLastSelected = Object.entries(
-      lastSelected.character.weighingsByDay
-    )
+    let previousWeighingsFromLastSelected = Object.entries(lastSelected.character.weighingsByStep)
       .filter(([day]) => parseInt(day) < lastSelected.day)
       .filter(([_, weighing]) => !!weighing.weight)
       .sort(([day1], [day2]) => parseInt(day2) - parseInt(day1))[0];
 
-    let firstWeighingsFromLastSelected = Object.entries(
-      lastSelected.character.weighingsByDay
-    )
+    let firstWeighingsFromLastSelected = Object.entries(lastSelected.character.weighingsByStep)
       .filter(([day]) => parseInt(day) < lastSelected.day)
       .filter(([_, weighing]) => !!weighing.weight)
       .sort(([day1], [day2]) => parseInt(day1) - parseInt(day2))[0];
 
-    const atLeastSecondWeighing = !!firstWeighingsFromLastSelected && (firstWeighingsFromLastSelected[0] !== lastSelected.day) && (firstWeighingsFromLastSelected[0] !== previousWeighingsFromLastSelected[0]);
+    const atLeastSecondWeighing =
+      !!firstWeighingsFromLastSelected &&
+      firstWeighingsFromLastSelected[0] !== lastSelected.day &&
+      firstWeighingsFromLastSelected[0] !== previousWeighingsFromLastSelected[0];
 
     if (valueToPlot === "kg") {
-      let text = `In part ${parseInt(lastSelected.day) + 1}, ${lastSelected.character.name} weighs ${lastSelected.weighing.weight} kg.`;
+      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} weighs ${lastSelected.weighing.weight} kg.`;
       if (!!previousWeighingsFromLastSelected) {
         const weightDifference =
-          Math.round(
-            (lastSelected.weighing.weight -
-              previousWeighingsFromLastSelected[1].weight) *
-              10
-          ) / 10;
-        text += ` She gained ${weightDifference} kg since the previous part `;
+          Math.round((lastSelected.weighing.weight - previousWeighingsFromLastSelected[1].weight) * 10) / 10;
+        if (!weightDifference) {
+          return text;
+        }
+        text += ` She ${weightDifference > 0 ? 'gained' : 'lost'} ${Math.abs(weightDifference)} kg in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
         if (atLeastSecondWeighing) {
-          const totalWeightDifference = Math.round(
-            (lastSelected.weighing.weight -
-            firstWeighingsFromLastSelected[1].weight) * 10
-          ) /10;
+          const totalWeightDifference =
+            Math.round((lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight) * 10) / 10;
           const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${totalWeightDifference} kg)`
+          text += ` (total: ${totalWeightDifference} kg in ${totalDayDifference} steps)`;
         }
         text += ".";
       }
       return text;
     }
     if (valueToPlot === "lbs") {
-      let text = `In part ${parseInt(lastSelected.day) + 1}, ${
-        lastSelected.character.name
-      } weighs ${toLbs(lastSelected.weighing.weight)} lbs.`;
+      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} weighs ${toLbs(
+        lastSelected.weighing.weight
+      )} lbs.`;
       if (!!previousWeighingsFromLastSelected) {
         const weightDifference =
-          Math.round(
-            toLbs(
-              lastSelected.weighing.weight -
-                previousWeighingsFromLastSelected[1].weight
-            ) * 10
-          ) / 10;
-        text += ` She gained ${weightDifference} lbs since the previous part`;
+          Math.round(toLbs(lastSelected.weighing.weight - previousWeighingsFromLastSelected[1].weight) * 10) / 10;
+        if (!weightDifference) {
+          return text;
+        }
+        text += ` She ${weightDifference > 0 ? 'gained' : 'lost'} ${Math.abs(weightDifference)} lbs in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
         if (atLeastSecondWeighing) {
-          const totalWeightDifference = Math.round(
-            (lastSelected.weighing.weight -
-            firstWeighingsFromLastSelected[1].weight) * 10
-          ) /10;
+          const totalWeightDifference =
+            Math.round((lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight) * 10) / 10;
           const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${toLbs(totalWeightDifference)} lbs)`
+          text += ` (total: ${toLbs(totalWeightDifference)} lbs in ${totalDayDifference} steps)`;
         }
         text += ".";
       }
@@ -248,7 +279,7 @@
           )
         : null;
 
-      let text = `In part ${parseInt(lastSelected.day) + 1}, ${lastSelected.character.name} `;
+      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} `;
 
       if (previousBMI === lastBMI) {
         text += "still ";
@@ -266,22 +297,16 @@
 
       if (previousBMI && previousBMI !== lastBMI) {
         const BMIDifference = lastBMI - previousBMI;
-        text += ` She gained ${BMIDifference} BMI point${
-          BMIDifference === 1 ? "" : "s"
-        } since the previous part.`
+        text += ` She gained ${BMIDifference} BMI point${BMIDifference === 1 ? "" : "s"} in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} steps.` : `day.`;
       }
-
-      if (lastSelected.character.name === "Shyla") {
-        text += " Obviously, BMI doesn't make much sense for snakes."
-      }
-
       return text;
     }
     if (valueToPlot === "lbs gained") {
       if (lastSelected.day === '0') {
         return "In part 1, the girls haven't gained any weight... yet."
       }
-
       const totalLbsGained = toLbs(lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight)
       let text = `In part ${parseInt(lastSelected.day) + 1}, ${
         lastSelected.character.name
@@ -296,34 +321,19 @@
     }
     return lastSelected.weighing.url;
   };
-
-  let clickPointHandler = (event) => {
-    if (!event) {
-      return;
-    }
-    lastSelected = getWeighingInfo(event._datasetIndex, event._index);
-  };
 </script>
 
 <main>
   <div class="cm-container">
-    <h1>EBC Monster girls drive ({valueToPlot})</h1>
+    <h1>Feed House Chart ({valueToPlot})</h1>
     <div class="cm-chart">
-      <Base data={dataLine} {options} {clickPointHandler} />
+      <Line data={dataLine} {options} />
     </div>
 
     <form class="cm-select-char">
       {#each characterNames as characterName}
-        <label
-          class="cm-char-label"
-          style="background-color: {characterColors[characterName]}"
-        >
-          <input
-            class="cm-char-checkbox"
-            type="checkbox"
-            bind:group={selectedCharacters}
-            value={characterName}
-          />
+        <label class="cm-char-label" style="background-color: {characterColors[characterName]}">
+          <input class="cm-char-checkbox" type="checkbox" bind:group={selectedCharacters} value={characterName} />
           {characterName}
         </label>
       {/each}
@@ -332,18 +342,15 @@
     <form class="cm-select-value">
       {#each possibleValuesToPlot as possibleValueToPlot}
         <label class="cm-value-label">
-          <input
-            class="cm-value-radio"
-            type="radio"
-            bind:group={valueToPlot}
-            value={possibleValueToPlot}
-          />
+          <input class="cm-value-radio" type="radio" bind:group={valueToPlot} value={possibleValueToPlot} />
           {possibleValueToPlot}
         </label>
       {/each}
     </form>
 
-    {toText(lastSelected, valueToPlot)}
+    <p>
+      {toText(lastSelected, valueToPlot)}
+    </p>
     {#if toPageUrl(lastSelected)}
       <p>
         <a href={toPageUrl(lastSelected)}>Go to page</a>
@@ -351,14 +358,14 @@
     {/if}
   </div>
 
-  <div class="cm-cassies-head">
-    <img src="./cassie.png" alt="Cassie's head" width="200" height="200" />
+  <div class="cm-trishas-head">
+    <img src="./trisha.png" alt="Trisha" width="218" height="174" />
   </div>
   <footer>
     <p>All characters belong to ExtraBaggageClaim.</p>
 
     <p>
-      <a href="https://ko-fi.com/extrabagageclaim">Ko-fi: make the girls grow!</a>
+      <a href="https://linktr.ee/ebcart">linktree: make the girls grow!</a>
     </p>
     
     <p>
@@ -390,42 +397,52 @@
     text-align: center;
   }
 
-  .cm-cassies-head {
+  img {
+    max-width: 174px;
+  }
+
+  .cm-trishas-head {
     display: flex;
     flex-flow: row-reverse;
     pointer-events: none;
   }
 
   .cm-container {
-    padding: 18px;
+    padding-left: 18px;
+    padding-right: 18px;
     flex-grow: 1;
   }
 
   @media only screen and (min-width: 768px) and (max-width: 1000px) {
     .cm-container {
-      padding-left: 100px;
-      padding-right: 100px;
+      padding-left: 120px;
+      padding-right: 120px;
+      margin-bottom: -96px;
     }
   }
 
   @media only screen and (min-width: 1001px) and (max-width: 1300px) {
     .cm-container {
-      padding-left: 200px;
-      padding-right: 200px;
-      margin-bottom: -120px;
+      padding-left: 120px;
+      padding-right: 120px;
+      margin-bottom: -96px;
     }
   }
 
   @media only screen and (min-width: 1301px) {
     .cm-container {
-      padding-left: 350px;
-      padding-right: 350px;
-      margin-bottom: -120px;
+      padding-left: 120px;
+      padding-right: 120px;
+      margin-bottom: -96px;
     }
   }
 
   .cm-chart {
     background-color: white;
+    position: relative;
+    margin: auto;
+    aspect-ratio: 16/9;
+    max-height: 65vh;
   }
 
   .cm-select-char {
@@ -443,6 +460,10 @@
     display: inline-block;
     font-size: 16px;
     margin: 4px 2px;
+  }
+
+  .cm-char-label:nth-child(3) {
+    color: #cccccc;
   }
 
   .cm-select-value {
