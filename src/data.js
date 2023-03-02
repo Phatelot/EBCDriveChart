@@ -15,6 +15,11 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1628895991465394176/photo/1",
         weight: fromLbs(189),
       },
+      2: {
+        page: 2,
+        url: "https://twitter.com/EBCArtWork/status/1631080137797308416/photo/1",
+        weight: fromLbs(744),
+      },
     },
   },
   Gisele: {
@@ -30,6 +35,11 @@ export const characters = {
         page: 1,
         url: "https://twitter.com/EBCArtWork/status/1628895991465394176/photo/1",
         weight: fromLbs(196),
+      },
+      2: {
+        page: 2,
+        url: "https://twitter.com/EBCArtWork/status/1631080137797308416/photo/1",
+        weight: fromLbs(262),
       },
     },
   },
@@ -48,6 +58,11 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1628895991465394176/photo/1",
         weight: fromLbs(293),
       },
+      2: {
+        page: 2,
+        url: "https://twitter.com/EBCArtWork/status/1631080137797308416/photo/1",
+        weight: fromLbs(445),
+      },
     },
   },
   Atalanta: {
@@ -63,6 +78,11 @@ export const characters = {
         page: 1,
         url: "https://twitter.com/EBCArtWork/status/1628895991465394176/photo/1",
         weight: fromLbs(282),
+      },
+      2: {
+        page: 2,
+        url: "https://twitter.com/EBCArtWork/status/1631080137797308416/photo/1",
+        weight: fromLbs(337),
       },
     },
   },
