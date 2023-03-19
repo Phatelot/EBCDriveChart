@@ -27,7 +27,7 @@ export const characters = {
       },
       4: {
         page: 4,
-        weight: fromLbs(1366),
+        weight: fromLbs(1369),
       },
     },
   },
@@ -57,7 +57,7 @@ export const characters = {
       },
       4: {
         page: 4,
-        weight: fromLbs(994),
+        weight: fromLbs(997),
       },
     },
   },
@@ -88,7 +88,7 @@ export const characters = {
       },
       4: {
         page: 4,
-        weight: fromLbs(1053),
+        weight: fromLbs(1056),
       },
     },
   },
@@ -118,7 +118,7 @@ export const characters = {
       },
       4: {
         page: 4,
-        weight: fromLbs(1381),
+        weight: fromLbs(1409),
       },
     },
   },
