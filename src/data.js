@@ -25,6 +25,10 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1633602948378025984/photo/1",
         weight: fromLbs(779),
       },
+      4: {
+        page: 4,
+        weight: fromLbs(1366),
+      },
     },
   },
   Gisele: {
@@ -50,6 +54,10 @@ export const characters = {
         page: 3,
         url: "https://twitter.com/EBCArtWork/status/1633602948378025984/photo/1",
         weight: fromLbs(508),
+      },
+      4: {
+        page: 4,
+        weight: fromLbs(994),
       },
     },
   },
@@ -78,6 +86,10 @@ export const characters = {
         url: "https://twitter.com/EBCArtWork/status/1633602948378025984/photo/1",
         weight: fromLbs(483),
       },
+      4: {
+        page: 4,
+        weight: fromLbs(1053),
+      },
     },
   },
   Atalanta: {
@@ -103,6 +115,10 @@ export const characters = {
         page: 3,
         url: "https://twitter.com/EBCArtWork/status/1633602948378025984/photo/1",
         weight: fromLbs(421),
+      },
+      4: {
+        page: 4,
+        weight: fromLbs(1381),
       },
     },
   },
