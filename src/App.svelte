@@ -7,7 +7,7 @@
 
   import { characters } from "./data";
 
-  import { BMI, BMIToCategory, toLbs } from "./weight";
+  import { BMI, BMIToCategory, toLbs, feetFromMeters, toFeetLabel, toMeters, toMetersLabel, toCentimetersLabel } from "./weight";
 
   ChartJS.register(Title, LineElement, PointElement, LinearScale, annotationPlugin);
 
@@ -37,7 +37,7 @@
     borderDashOffset: 0,
   });
 
-  const possibleValuesToPlot = ["lbs", "kg", "BMI", "lbs gained"];
+  const possibleValuesToPlot = ["lbs", "kg", "BMI", "height (imp)", "height (metric)"];
   $: valueToPlot = possibleValuesToPlot[0];
 
   const characterNames = Object.entries(characters).map(([name]) => name);
@@ -119,14 +119,20 @@
     BMI: {
       datasets: toDataset(dataFromSelectedCharacters, ({ weight, height }) => BMI(height, weight)),
     },
-    'lbs gained': {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight, initialWeight }) => {
-        return toLbs(weight - initialWeight);
-      }),
+    'height (imp)': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ height }) => height),
+    },
+    'height (metric)': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ height }) => height),
     },
   };
 
   $: dataLine = allDataLines[valueToPlot];
+
+  $: chartTitle = `Bex "Taller" Chart (${{
+    "height (imp)": "height, imperial units",
+    "height (metric)": "height, metric system",
+  }[valueToPlot] || valueToPlot})`;
 
   let onClick = (event, _, chart) => {
     const elements = chart.getElementsAtEventForMode(event, "cmInteractionMode", { intersect: true }, true);
@@ -161,7 +167,6 @@
           kg: 150,
           lbs: toLbs(150),
           BMI: 50,
-          'lbs gained': 105,
         }[valueToPlot],
         suggestedMin: 0,
         ticks: {
@@ -170,15 +175,19 @@
             kg: 10,
             lbs: 25,
             BMI: 5,
-            'lbs gained': 20,
+            'height (imp)': toMeters(1),
+            'height (metric)': 0.25,
           }[valueToPlot],
           callback: (label) => {
             switch (valueToPlot) {
               case "kg":
                 return label % 20 === 0 ? `${label}kg` : "";
               case "lbs":
-              case "lbs gained":
                 return label % 50 === 0 ? `${label}lbs` : "";
+              case "height (imp)":
+                return toFeetLabel(feetFromMeters(label));
+              case "height (metric)":
+                return toMetersLabel(label);
               default:
                 return label;
             }
@@ -238,7 +247,7 @@
           const totalWeightDifference =
             Math.round((lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight) * 10) / 10;
           const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${totalWeightDifference} kg in ${totalDayDifference} steps)`;
+          text += ` (total: ${totalWeightDifference} kg)`;
         }
         text += ".";
       }
@@ -261,7 +270,7 @@
           const totalWeightDifference =
             Math.round((lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight) * 10) / 10;
           const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${toLbs(totalWeightDifference)} lbs in ${totalDayDifference} steps)`;
+          text += ` (total: ${toLbs(totalWeightDifference)} lbs)`;
         }
         text += ".";
       }
@@ -303,14 +312,42 @@
       }
       return text;
     }
-    if (valueToPlot === "lbs gained") {
-      if (lastSelected.day === '0') {
-        return "In part 1, Bex hasn't gained any weight... yet."
+    if (valueToPlot === "height (imp)") {
+      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} is ${toFeetLabel(feetFromMeters(lastSelected.weighing.height))} tall.`;
+      if (!!previousWeighingsFromLastSelected) {
+        const heightDifference = lastSelected.weighing.height - previousWeighingsFromLastSelected[1].height;
+        if (!heightDifference) {
+          return text;
+        }
+        text += ` She grew ${toFeetLabel(feetFromMeters(heightDifference))} in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
+        if (atLeastSecondWeighing) {
+          const totalHeightDifference = lastSelected.weighing.height - firstWeighingsFromLastSelected[1].height;
+          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+          text += ` (total: ${toFeetLabel(feetFromMeters(totalHeightDifference))})`;
+        }
+        text += ".";
       }
-      const totalLbsGained = toLbs(lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight)
-      let text = `In part ${parseInt(lastSelected.day) + 1}, ${
-        lastSelected.character.name
-      } has gained a total of ${Math.round(totalLbsGained)} lbs.`
+      return text;
+    }
+    if (valueToPlot === "height (metric)") {
+      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} is ${toMetersLabel(lastSelected.weighing.height)} tall.`;
+      if (!!previousWeighingsFromLastSelected) {
+        const heightDifference = lastSelected.weighing.height - previousWeighingsFromLastSelected[1].height;
+        if (!heightDifference) {
+          return text;
+        }
+        text += ` She grew ${toCentimetersLabel(heightDifference)} in the last `;
+        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
+        if (atLeastSecondWeighing) {
+          const totalHeightDifference = lastSelected.weighing.height - firstWeighingsFromLastSelected[1].height;
+          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+          text += ` (total: ${toMetersLabel(totalHeightDifference)})`;
+        }
+        text += ".";
+      }
       return text;
     }
   };
@@ -325,7 +362,7 @@
 
 <main>
   <div class="cm-container">
-    <h1>Bex "Taller" Chart ({valueToPlot})</h1>
+    <h1>{chartTitle}</h1>
     <div class="cm-chart">
       <Line data={dataLine} {options} />
     </div>
@@ -455,10 +492,6 @@
     display: inline-block;
     font-size: 16px;
     margin: 4px 2px;
-  }
-
-  .cm-char-label:nth-child(3) {
-    color: #cccccc;
   }
 
   .cm-select-value {

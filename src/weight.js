@@ -50,3 +50,30 @@ export function toStonesLabel(weightInLbs) {
 export function toMeters(feet, inches) {
   return (feet * 12 + inches) * 0.0254;
 }
+
+export function feetFromMeters(meters) {
+  const inches = Math.round(meters / 0.0254);
+  return {
+    feet: Math.floor(inches / 12),
+    inches: inches % 12,
+  };
+}
+
+export function toFeetLabel({feet, inches}) {
+  let label = "";
+  if (feet) {
+    label += `${feet}'`
+  }
+  if (inches) {
+    label += `${inches}"`
+  }
+  return label;
+}
+
+export function toMetersLabel(height) {
+  return `${Math.round(height * 100) / 100}m`
+}
+
+export function toCentimetersLabel(height) {
+  return `${Math.round(height * 100)}cm`
+}
