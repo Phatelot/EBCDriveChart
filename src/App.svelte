@@ -150,8 +150,8 @@
         ticks: {
           max: maxDay + 1,
           min: 0,
-          stepSize: 6,
-          callback: (label) => (label % 6 === 0 ? `step ${label}` : ""),
+          stepSize: 1,
+          callback: (label) => (label % 1 === 0 ? `step ${label}` : ""),
         },
       },
       y: {
@@ -305,7 +305,7 @@
     }
     if (valueToPlot === "lbs gained") {
       if (lastSelected.day === '0') {
-        return "In part 1, the girls haven't gained any weight... yet."
+        return "In part 1, Bex hasn't gained any weight... yet."
       }
       const totalLbsGained = toLbs(lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight)
       let text = `In part ${parseInt(lastSelected.day) + 1}, ${
@@ -325,19 +325,10 @@
 
 <main>
   <div class="cm-container">
-    <h1>Feed House Chart ({valueToPlot})</h1>
+    <h1>Bex "Taller" Chart ({valueToPlot})</h1>
     <div class="cm-chart">
       <Line data={dataLine} {options} />
     </div>
-
-    <form class="cm-select-char">
-      {#each characterNames as characterName}
-        <label class="cm-char-label" style="background-color: {characterColors[characterName]}">
-          <input class="cm-char-checkbox" type="checkbox" bind:group={selectedCharacters} value={characterName} />
-          {characterName}
-        </label>
-      {/each}
-    </form>
 
     <form class="cm-select-value">
       {#each possibleValuesToPlot as possibleValueToPlot}
@@ -358,14 +349,16 @@
     {/if}
   </div>
 
-  <div class="cm-trishas-head">
-    <img src="./trisha.png" alt="Trisha" width="218" height="174" />
+  <div class="cm-genies-head">
+    <img src="./genie.png" alt="Genie" width="170" height="142" />
   </div>
   <footer>
-    <p>All characters belong to ExtraBaggageClaim.</p>
+    <p>
+      <a href="https://linktr.ee/ebcart">Linktree: make Bex grow!</a>
+    </p>
 
     <p>
-      <a href="https://linktr.ee/ebcart">linktree: make the girls grow!</a>
+      <a href="https://picarto.tv/EBCArt">Watch EBC stream on Picarto</a>
     </p>
     
     <p>
@@ -382,6 +375,8 @@
       <a href="https://github.com/Phatelot/EBCDriveChart">Source code of this page</a
       >
     </p>
+
+    <p>All characters belong to ExtraBaggageClaim.</p>
   </footer>
 </main>
 
@@ -401,7 +396,7 @@
     max-width: 174px;
   }
 
-  .cm-trishas-head {
+  .cm-genies-head {
     display: flex;
     flex-flow: row-reverse;
     pointer-events: none;

@@ -22,7 +22,7 @@ body {
 }
 
 main {
-  background: linear-gradient(0.875turn, #da5e38, #ff9b45);
+  background: linear-gradient(0.875turn, #edbce9, #eca1e2);
   min-height: 100vh;
   display: flex;
   flex-direction: column;

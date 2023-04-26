@@ -46,3 +46,7 @@ export function toStonesLabel(weightInLbs) {
   }
   return label;
 }
+
+export function toMeters(feet, inches) {
+  return (feet * 12 + inches) * 0.0254;
+}
