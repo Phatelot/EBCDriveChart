@@ -34,6 +34,11 @@ export const characters = {
         height: toMeters(9, 0),
         weight: fromLbs(513),
       },
+      6: {
+        url: "https://twitter.com/EBCArtWork/status/1651754414900920321/photo/1",
+        height: toMeters(10, 0),
+        weight: fromLbs(703),
+      },
     },
   },
 };
