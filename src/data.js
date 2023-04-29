@@ -37,8 +37,8 @@ export const characters = completeData({
         weight: fromLbs(513),
       },
       6: {
-        url: "https://twitter.com/EBCArtWork/status/1651754414900920321/photo/1",
         height: toMeters(10, 0),
+        url: "https://twitter.com/EBCArtWork/status/1651754414900920321/photo/1",
         weight: fromLbs(703),
       },
     },
@@ -86,6 +86,26 @@ function completeWeighingData(initialWeighing, previousWeighing, weighing, day) 
   };
 
   weighing = {
+    ...weighing,
+    initialWeightNormalizedToCurrentHeight: function() {
+      // If the character started at their current height while maintaining their BMI, how much would they have weighed?
+      return weighing.isInitial ? weighing.weight : initialWeighing.bmi * weighing.height * weighing.height;      
+    }(),
+    currentWeightNormalizedToInitialHeight: function() {
+      // If the character's height didn't change since the beginning, how much would they have to weigh to get to their current BMI?
+      return weighing.isInitial ? weighing.weight : weighing.bmi * initialWeighing.height * initialWeighing.height;
+    }(),
+    initialHeightNormalizedToCurrentWeight: function() {
+      // If the character maintained their current weight, how tall would they have to be to get to their initial BMI?
+      return weighing.isInitial ? weighing.height : Math.sqrt(weighing.weight / initialWeighing.bmi);
+    }(),
+    currentHeightNormalizedToInitialWeight: function() {
+      // If the character's weight didn't change since the beginning, how small would they have to be to get to their current BMI?
+      return weighing.isInitial ? weighing.height : Math.sqrt(initialWeighing.weight / weighing.bmi);
+    }(),
+  };
+
+  weighing = {
     ...weighing, 
     weightGained: previousWeighing ? (weighing.weight - previousWeighing.weight) : 0,
     heightGained: previousWeighing ? (weighing.height - previousWeighing.height) : 0,
@@ -95,20 +115,63 @@ function completeWeighingData(initialWeighing, previousWeighing, weighing, day) 
     totalWeightGained: initialWeighing ? (weighing.weight - initialWeighing.weight) : 0,
     totalHeightGained: initialWeighing ? (weighing.height - initialWeighing.height) : 0,
     daysSinceInitial: initialWeighing ? (weighing.day - initialWeighing.day) : 0,
+    weightGainedNormalizedToInitialHeight: function() {
+      // If the character's height didn't change since the beginning, how much would they have to gain to get to their current BMI ?
+      if (weighing.isInitial) {
+        return 0;
+      }
+      return weighing.currentWeightNormalizedToInitialHeight - initialWeighing.weight; 
+    }(),
+    excessFat: function() {
+      // If the character's height had always been the current one but their BMI progression would be their actual one, how much weight would they have put on total?
+      if (weighing.isInitial) {
+        return 0;
+      }
+      return weighing.weight - weighing.initialWeightNormalizedToCurrentHeight;
+    }(),
+    bmiIfCurrentWeightForInitialHeight: function() {
+      // BMI if the character's weight would be the current one while they'd have been maintaining their initial height?
+      if (weighing.isInitial) {
+        return weighing.bmi;
+      }
+      return BMI(initialWeighing.height, weighing.weight);
+    }(),
   };
+
+  weighing.bmiCategoryIfCurrentWeightForInitialHeight = BMIToCategory(weighing.bmiIfCurrentWeightForInitialHeight);
+
+  weighing.heightGainedToWeightGainedPercentage = function() {
+    // How much of the gained weight made the character taller rather than fatter?
+    if (weighing.isInitial) {
+      return 100;
+    }
+
+    return 100 - 100*(weighing.excessFat / weighing.totalWeightGained);
+  }();
   
   weighing = {
     ...weighing,
-    weightInLbs: toLbs(weighing.weight),
     weightGainedInLbs: toLbs(weighing.weightGained),
+    weightInLbs: toLbs(weighing.weight),
     totalWeightGainedInLbs: toLbs(weighing.totalWeightGained),
+    weightGainedNormalizedToCurrentHeightInLbs: toLbs(weighing.weightGainedNormalizedToCurrentHeight),
+    weightGainedNormalizedToInitialHeightInLbs: toLbs(weighing.weightGainedNormalizedToInitialHeight),
     heightInInches: toInches(weighing.height),
     heightGainedInInches: toInches(weighing.heightGained),
     totalHeightGainedInInches: toInches(weighing.totalHeightGained),
   };
 
-  ['weightGained', 'totalWeightGained'].forEach(propertyName => roundProperty(weighing, propertyName, 1));
-  ['heightGained', 'totalHeightGained'].forEach(propertyName => roundProperty(weighing, propertyName, 2));
+  roundProperty(weighing, 'heightGainedToWeightGainedPercentage', 1);
+  [
+    'weightGained',
+    'totalWeightGained',
+    'weightGainedNormalizedToCurrentHeight',
+    'weightGainedNormalizedToInitialHeight',
+  ].forEach(propertyName => roundProperty(weighing, propertyName, 1));
+  [
+    'heightGained',
+    'totalHeightGained',
+  ].forEach(propertyName => roundProperty(weighing, propertyName, 2));
 
   return weighing;
 }

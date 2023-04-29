@@ -7,7 +7,7 @@
 
   import { characters } from "./data";
 
-  import { BMI, BMIToCategory, toLbs, feetFromMeters, toFeetLabel, toMeters, toMetersLabel, toCentimetersLabel } from "./weight";
+  import { toLbs, feetFromMeters, toFeetLabel, toMeters, toMetersLabel, toCentimetersLabel } from "./weight";
 
   ChartJS.register(Title, LineElement, PointElement, LinearScale, annotationPlugin);
 
@@ -37,7 +37,7 @@
     borderDashOffset: 0,
   });
 
-  const possibleValuesToPlot = ["lbs", "kg", "BMI", "height (imp)", "height (metric)"];
+  const possibleValuesToPlot = ["lbs", "kg", "BMI", "height (imp)", "height (metric)", "wish effectiveness", "100% effective wish (imp)", "100% effective wish (metric)", "uneffective wish (BMI)"];
   $: valueToPlot = possibleValuesToPlot[0];
 
   const characterNames = Object.entries(characters).map(([name]) => name);
@@ -113,6 +113,18 @@
     'height (metric)': {
       datasets: toDataset(dataFromSelectedCharacters, ({ height }) => height),
     },
+    'wish effectiveness': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ heightGainedToWeightGainedPercentage }) => heightGainedToWeightGainedPercentage),
+    },
+    '100% effective wish (imp)': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ initialHeightNormalizedToCurrentWeight }) => initialHeightNormalizedToCurrentWeight),
+    },
+    '100% effective wish (metric)': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ initialHeightNormalizedToCurrentWeight }) => initialHeightNormalizedToCurrentWeight),
+    },
+    'uneffective wish (BMI)': {
+      datasets: toDataset(dataFromSelectedCharacters, ({ bmiIfCurrentWeightForInitialHeight }) => bmiIfCurrentWeightForInitialHeight),
+    },
   };
 
   $: dataLine = allDataLines[valueToPlot];
@@ -120,6 +132,9 @@
   $: chartTitle = `Bex "Taller" Chart (${{
     "height (imp)": "height, imperial units",
     "height (metric)": "height, metric system",
+    "100% effective wish (imp)": "100% effective wish, imperial units",
+    "100% effective wish (metric)": "100% effective wish, metric system",
+    "uneffective wish (BMI)": "uneffective wish, bmi",
   }[valueToPlot] || valueToPlot})`;
 
   let onClick = (event, _, chart) => {
@@ -155,6 +170,7 @@
           kg: 150,
           lbs: toLbs(150),
           BMI: 50,
+          'wish effectiveness': 100,
         }[valueToPlot],
         suggestedMin: 0,
         ticks: {
@@ -165,6 +181,10 @@
             BMI: 5,
             'height (imp)': toMeters(1),
             'height (metric)': 0.25,
+            'wish effectiveness': 10,
+            '100% effective wish (imp)': toMeters(2),
+            '100% effective wish (metric)': 0.5,
+            'uneffective wish (BMI)': 5,
           }[valueToPlot],
           callback: (label) => {
             switch (valueToPlot) {
@@ -176,6 +196,13 @@
                 return toFeetLabel(feetFromMeters(label));
               case "height (metric)":
                 return toMetersLabel(label);
+              case "wish effectiveness":
+                return label % 20 === 0 ? `${label}%` : "";
+              case "100% effective wish (imp)":
+                return toFeetLabel(feetFromMeters(label));
+              case "100% effective wish (metric)":
+                return toMetersLabel(label);
+              case "uneffective wish (BMI)":
               default:
                 return label;
             }
@@ -186,6 +213,14 @@
     plugins: {
       annotation: {
         BMI: {
+          annotations: {
+            healthy: createBMIThresholdAnnotation(18.5),
+            overweight: createBMIThresholdAnnotation(25),
+            obese: createBMIThresholdAnnotation(30),
+            obeseII: createBMIThresholdAnnotation(40),
+          },
+        },
+        'uneffective wish (BMI)': {
           annotations: {
             healthy: createBMIThresholdAnnotation(18.5),
             overweight: createBMIThresholdAnnotation(25),
@@ -298,6 +333,26 @@
         text += ".";
       }
       return text;
+    case "wish effectiveness":
+      if (lastSelected.isInitial) {
+        return `At the beginning, ${lastSelected.character.name}'s wish hasn't had any effect yet. What could go wrong?`
+      }
+      return `At step ${lastSelected.day}, only ${lastSelected.heightGainedToWeightGainedPercentage}% of the weight ${lastSelected.character.name} gained has actually made her taller. She doesn't seem to mind that much.`
+    case '100% effective wish (imp)':
+      if (lastSelected.isInitial) {
+        return `At the beginning, ${lastSelected.character.name}'s wish hasn't had any effect yet. What could go wrong?`
+      }
+      return `At step ${lastSelected.day}, if 100% of the weight ${lastSelected.character.name} has gained went to make her taller, she'd be ${toFeetLabel(feetFromMeters(lastSelected.initialHeightNormalizedToCurrentWeight))} tall (rather than ${toFeetLabel(feetFromMeters(lastSelected.height))}).`;
+    case '100% effective wish (metric)': 
+      if (lastSelected.isInitial) {
+        return `At the beginning, ${lastSelected.character.name}'s wish hasn't had any effect yet. What could go wrong?`
+      }
+      return `At step ${lastSelected.day}, if 100% of the weight ${lastSelected.character.name} has gained went to make her taller, she'd be ${toMetersLabel(lastSelected.initialHeightNormalizedToCurrentWeight)} tall (rather than ${toMetersLabel(lastSelected.height)}).`;
+    case 'uneffective wish (BMI)': 
+      if (lastSelected.isInitial) {
+        return `At the beginning, ${lastSelected.character.name}'s wish hasn't had any effect yet. What could go wrong?`
+      }
+      return `At step ${lastSelected.day}, if none of the weight ${lastSelected.character.name} has gained went to make her taller, she'd have a BMI of ${lastSelected.bmiIfCurrentWeightForInitialHeight} (rather than ${lastSelected.bmi}) and she'd be ${lastSelected.bmiCategoryIfCurrentWeightForInitialHeight}.`
     }
   };
 
