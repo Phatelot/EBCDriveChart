@@ -41,25 +41,17 @@
   $: valueToPlot = possibleValuesToPlot[0];
 
   const characterNames = Object.entries(characters).map(([name]) => name);
-  const characterColors = Object.fromEntries(characterNames.map((name) => [name, characters[name].color]));
 
   let selectedCharacters = [...characterNames];
 
   $: dataFromSelectedCharacters = Object.entries(characters).filter(([name]) => selectedCharacters.includes(name));
 
-  $: selectedWeighings = dataFromSelectedCharacters.map(([name, data]) => ({
-    name,
-    ...data,
-    weighings: Object.entries(data.weighingsByStep).map(([day, weighing]) => ({
-      day,
-      weighing,
-    })),
-  }));
+  $: selectedWeighings = dataFromSelectedCharacters.map(([name, data]) => ({name, ...data}));
 
   $: getWeighingInfo = (datasetIndex, index) => {
     return {
       character: selectedWeighings[datasetIndex],
-      ...selectedWeighings[datasetIndex].weighings[index],
+      ...selectedWeighings[datasetIndex].weighingsByStep[index],
     };
   };
 
@@ -96,11 +88,7 @@
       tension: 0.2,
       fill: false,
       data: Object.entries(data.weighingsByStep).map(([day, weighing]) => {
-        const y = valueFunc({
-          height: weighing.height || data.height,
-          weight: weighing.weight,
-          initialWeight: (data.weighingsByStep[0] || {}).weight,
-        });
+        const y = valueFunc(weighing);
         if (!y && y !== 0) {
           return null
         }
@@ -114,10 +102,10 @@
       datasets: toDataset(dataFromSelectedCharacters, ({ weight }) => weight),
     },
     lbs: {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight }) => toLbs(weight)),
+      datasets: toDataset(dataFromSelectedCharacters, ({ weightInLbs }) => weightInLbs),
     },
     BMI: {
-      datasets: toDataset(dataFromSelectedCharacters, ({ weight, height }) => BMI(height, weight)),
+      datasets: toDataset(dataFromSelectedCharacters, ({ bmi }) => bmi),
     },
     'height (imp)': {
       datasets: toDataset(dataFromSelectedCharacters, ({ height }) => height),
@@ -217,133 +205,94 @@
       return "Select a point on the chart to display more information";
     }
 
-    let previousWeighingsFromLastSelected = Object.entries(lastSelected.character.weighingsByStep)
-      .filter(([day]) => parseInt(day) < lastSelected.day)
-      .filter(([_, weighing]) => !!weighing.weight)
-      .sort(([day1], [day2]) => parseInt(day2) - parseInt(day1))[0];
-
-    let firstWeighingsFromLastSelected = Object.entries(lastSelected.character.weighingsByStep)
-      .filter(([day]) => parseInt(day) < lastSelected.day)
-      .filter(([_, weighing]) => !!weighing.weight)
-      .sort(([day1], [day2]) => parseInt(day1) - parseInt(day2))[0];
-
-    const atLeastSecondWeighing =
-      !!firstWeighingsFromLastSelected &&
-      firstWeighingsFromLastSelected[0] !== lastSelected.day &&
-      firstWeighingsFromLastSelected[0] !== previousWeighingsFromLastSelected[0];
-
-    if (valueToPlot === "kg") {
-      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} weighs ${lastSelected.weighing.weight} kg.`;
-      if (!!previousWeighingsFromLastSelected) {
-        const weightDifference =
-          Math.round((lastSelected.weighing.weight - previousWeighingsFromLastSelected[1].weight) * 10) / 10;
+    let text = "";
+    switch (valueToPlot) {
+    case "kg":
+      text += `At step ${lastSelected.day}, ${lastSelected.character.name} weighs ${lastSelected.weight} kg.`;
+      if (!lastSelected.isInitial) {
+        const weightDifference = lastSelected.weightGained;
         if (!weightDifference) {
           return text;
         }
         text += ` She ${weightDifference > 0 ? 'gained' : 'lost'} ${Math.abs(weightDifference)} kg in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        const dayDifference = lastSelected.daysSincePrevious;
         text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
-        if (atLeastSecondWeighing) {
-          const totalWeightDifference =
-            Math.round((lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight) * 10) / 10;
-          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+        if (!lastSelected.isSecond) {
+          const totalWeightDifference = lastSelected.totalWeightGained;
           text += ` (total: ${totalWeightDifference} kg)`;
         }
         text += ".";
       }
       return text;
-    }
-    if (valueToPlot === "lbs") {
-      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} weighs ${toLbs(
-        lastSelected.weighing.weight
-      )} lbs.`;
-      if (!!previousWeighingsFromLastSelected) {
-        const weightDifference =
-          Math.round(toLbs(lastSelected.weighing.weight - previousWeighingsFromLastSelected[1].weight) * 10) / 10;
+    case "lbs":
+      text += `At step ${lastSelected.day}, ${lastSelected.character.name} weighs ${lastSelected.weightInLbs} lbs.`;
+      if (!lastSelected.isInitial) {
+        const weightDifference = lastSelected.weightGainedInLbs;
         if (!weightDifference) {
           return text;
         }
         text += ` She ${weightDifference > 0 ? 'gained' : 'lost'} ${Math.abs(weightDifference)} lbs in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        const dayDifference = lastSelected.daysSincePrevious;
         text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
-        if (atLeastSecondWeighing) {
-          const totalWeightDifference =
-            Math.round((lastSelected.weighing.weight - firstWeighingsFromLastSelected[1].weight) * 10) / 10;
-          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
-          text += ` (total: ${toLbs(totalWeightDifference)} lbs)`;
+        if (!lastSelected.isSecond) {
+          const totalWeightDifference = lastSelected.totalWeightGainedInLbs;
+          text += ` (total: ${totalWeightDifference} lbs)`;
         }
         text += ".";
       }
       return text;
-    }
-    if (valueToPlot === "BMI") {
-      const lastBMI = BMI(
-        lastSelected.weighing.height || lastSelected.character.height,
-        lastSelected.weighing.weight
-      );
-      const previousBMI = !!previousWeighingsFromLastSelected
-        ? BMI(
-            previousWeighingsFromLastSelected[1].height || lastSelected.character.height,
-            previousWeighingsFromLastSelected[1].weight
-          )
-        : null;
+    case "BMI":
+      text += `At step ${lastSelected.day}, ${lastSelected.character.name} `;
 
-      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} `;
-
-      if (previousBMI === lastBMI) {
+      if (!lastSelected.isInitial && lastSelected.bmiGained === 0) {
         text += "still ";
       }
 
-      text += `has a BMI of ${lastBMI}, `;
-      const lastBMICategory = BMIToCategory(lastBMI);
-      if (!previousBMI) {
-        text += `so she is ${lastBMICategory}.`;
-      } else if (BMIToCategory(previousBMI) !== lastBMICategory) {
-        text += `and is now ${lastBMICategory}.`;
+      text += `has a BMI of ${lastSelected.bmi}, `;
+      if (lastSelected.isInitial) {
+        text += `so she is ${lastSelected.bmiCategory}.`;
+      } else if (lastSelected.changedBMICategory) {
+        text += `and is now ${lastSelected.bmiCategory}.`;
       } else {
-        text += `and remains ${lastBMICategory}.`;
+        text += `and remains ${lastSelected.bmiCategory}.`;
       }
 
-      if (previousBMI && previousBMI !== lastBMI) {
-        const BMIDifference = lastBMI - previousBMI;
+      if (!lastSelected.isInitial && lastSelected.bmiGained === 0) {
+        const BMIDifference = lastSelected.bmiGained;
         text += ` She gained ${BMIDifference} BMI point${BMIDifference === 1 ? "" : "s"} in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
-        text += dayDifference > 1 ? `${dayDifference} steps.` : `day.`;
+        const dayDifference = lastSelected.daysSincePrevious;
+        text += dayDifference > 1 ? `${dayDifference} steps.` : `step.`;
       }
       return text;
-    }
-    if (valueToPlot === "height (imp)") {
-      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} is ${toFeetLabel(feetFromMeters(lastSelected.weighing.height))} tall.`;
-      if (!!previousWeighingsFromLastSelected) {
-        const heightDifference = lastSelected.weighing.height - previousWeighingsFromLastSelected[1].height;
+    case "height (imp)":
+      text += `At step ${lastSelected.day}, ${lastSelected.character.name} is ${toFeetLabel(feetFromMeters(lastSelected.height))} tall.`;
+      if (!lastSelected.isInitial) {
+        const heightDifference = lastSelected.heightGained;
         if (!heightDifference) {
           return text;
         }
         text += ` She grew ${toFeetLabel(feetFromMeters(heightDifference))} in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        const dayDifference = lastSelected.daysSincePrevious;
         text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
-        if (atLeastSecondWeighing) {
-          const totalHeightDifference = lastSelected.weighing.height - firstWeighingsFromLastSelected[1].height;
-          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+        if (!lastSelected.isSecond) {
+          const totalHeightDifference = lastSelected.totalHeightGained;
           text += ` (total: ${toFeetLabel(feetFromMeters(totalHeightDifference))})`;
         }
         text += ".";
       }
       return text;
-    }
-    if (valueToPlot === "height (metric)") {
-      let text = `At step ${lastSelected.day}, ${lastSelected.character.name} is ${toMetersLabel(lastSelected.weighing.height)} tall.`;
-      if (!!previousWeighingsFromLastSelected) {
-        const heightDifference = lastSelected.weighing.height - previousWeighingsFromLastSelected[1].height;
+    case "height (metric)":
+      text += `At step ${lastSelected.day}, ${lastSelected.character.name} is ${toMetersLabel(lastSelected.height)} tall.`;
+      if (!lastSelected.isInitial) {
+        const heightDifference = lastSelected.heightGained;
         if (!heightDifference) {
           return text;
         }
         text += ` She grew ${toCentimetersLabel(heightDifference)} in the last `;
-        const dayDifference = lastSelected.day - previousWeighingsFromLastSelected[0];
+        const dayDifference = lastSelected.daysSincePrevious;
         text += dayDifference > 1 ? `${dayDifference} steps` : `step`;
-        if (atLeastSecondWeighing) {
-          const totalHeightDifference = lastSelected.weighing.height - firstWeighingsFromLastSelected[1].height;
-          const totalDayDifference = lastSelected.day - firstWeighingsFromLastSelected[0];
+        if (!lastSelected.isSecond) {
+          const totalHeightDifference = lastSelected.totalHeightGained;
           text += ` (total: ${toMetersLabel(totalHeightDifference)})`;
         }
         text += ".";
@@ -356,7 +305,7 @@
     if (!lastSelected) {
       return "";
     }
-    return lastSelected.weighing.url;
+    return lastSelected.url;
   };
 </script>
 

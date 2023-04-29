@@ -51,8 +51,12 @@ export function toMeters(feet, inches) {
   return (feet * 12 + inches) * 0.0254;
 }
 
+export function toInches(meters) {
+  return Math.round(meters / 0.0254);
+}
+
 export function feetFromMeters(meters) {
-  const inches = Math.round(meters / 0.0254);
+  const inches = toInches(meters);
   return {
     feet: Math.floor(inches / 12),
     inches: inches % 12,
