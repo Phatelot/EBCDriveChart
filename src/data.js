@@ -41,6 +41,11 @@ export const characters = completeData({
         url: "https://twitter.com/EBCArtWork/status/1651754414900920321/photo/1",
         weight: fromLbs(703),
       },
+      7: {
+        height: toMeters(10, 10),
+        url: "https://twitter.com/EBCArtWork/status/1657109797483970561/photo/1",
+        weight: fromLbs(851),
+      },
     },
   },
 });
